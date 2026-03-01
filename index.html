@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChillPanda | Python Mastery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d1117; --card-bg: #161b22; --text-primary: #c9d1d9; --text-secondary: #8b949e;
+            --accent-python-blue: #306998; --accent-python-yellow: #FFE873; --accent-light-blue: #4B8BBE;
+            --border-color: #30363d; --code-font: 'Fira Code', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-color); color: var(--text-primary); padding-top: 80px; padding-bottom: 100px; }
+        .ambient-light { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1; background: radial-gradient(circle at 50% 0%, rgba(75, 139, 190, 0.1) 0%, transparent 50%); }
+        .progress-container { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .progress-info { font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; white-space: nowrap; }
+        .progress-bar-wrapper { flex: 1; min-width: 150px; margin: 0 10px; background: #21262d; height: 6px; border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--accent-python-yellow); width: 0%; transition: width 0.4s ease; border-radius: 2px; }
+        .reset-btn { background: transparent; border: 1px solid #da3633; color: #da3633; padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
+        .reset-btn:hover { background: #da3633; color: #fff; }
+        header { padding: 3rem 2rem; text-align: center; }
+        h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; color: #f0f6fc; margin-bottom: 0.5rem; }
+        .controls-wrapper { max-width: 1200px; margin: 1rem auto; display: flex; gap: 1rem; padding: 0 2rem; flex-wrap: wrap; }
+        .search-input, .filter-select { flex: 1; padding: 0.8rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: #0d1117; color: #fff; font-family: var(--code-font); font-size: 0.9rem; min-width: 200px; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+        .table-wrapper { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th { text-align: left; padding: 1rem; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border-color); background: #161b22; position: sticky; top: 0; z-index: 10; }
+        td { padding: 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; font-size: 0.95rem; }
+        tr:hover { background: #21262d; }
+        .func-name { font-family: var(--code-font); color: var(--accent-python-yellow); font-weight: 500; font-size: 1rem; }
+        .desc-text { font-size: 0.9rem; color: #8b949e; line-height: 1.5; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; z-index: 2000; padding: 20px; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .notebook-window { width: 100%; max-width: 900px; background: #fff; border-radius: 8px; display: flex; flex-direction: column; height: 85vh; color: #000; overflow: hidden; box-shadow: 0 50px 100px rgba(0,0,0,0.5); }
+        .notebook-header { background: #1e1e1e; padding: 8px 20px; border-bottom: 1px solid #333; font-size: 0.85rem; color: #d4d4d4; display: flex; justify-content: space-between; align-items: center; border-top: 3px solid var(--accent-python-yellow);}
+        .notebook-body { flex: 1; overflow-y: auto; padding: 30px; font-family: var(--code-font); font-size: 14px; background: #f5f5f5; }
+        .info-box { padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; font-family: sans-serif; font-size: 13.5px; line-height: 1.5; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .question-box { background: #e0f2fe; border-left: 4px solid var(--accent-light-blue); color: #0c4a6e; }
+        .question-title { font-weight: bold; margin-bottom: 4px; color: var(--accent-python-blue); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .explanation-box { background: #fdf6e3; border-left: 4px solid #d4a373; color: #5e4a30; margin-top: 20px; margin-bottom: 0;}
+        .explanation-title { font-weight: bold; margin-bottom: 4px; color: #bc6c25; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .schema-container { margin-bottom: 25px; padding: 15px; background: #e8eaed; border-radius: 6px; border: 1px solid #ccc; font-family: sans-serif; }
+        .schema-title { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .context-table { width: 100%; border-collapse: collapse; font-size: 13px; font-family: var(--code-font); min-width: unset; background: #fff; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; }
+        .context-table th { background: #f6f8fa; color: #57606a; font-weight: 600; text-align: left; padding: 8px 12px; border-bottom: 1px solid #d0d7de; font-size: 12px; font-family: sans-serif;}
+        .context-table td { padding: 8px 12px; border-bottom: 1px solid #e1e4e8; color: #24292f; }
+        .context-table tr:last-child td { border-bottom: none; }
+        .var-type { font-size: 10px; color: #888; background: #eee; padding: 2px 6px; border-radius: 10px; margin-left: 5px; font-family: sans-serif;}
+        .cell { margin-bottom: 0; display: block; }
+        .cell-input { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+        .prompt { color: #888; user-select: none; font-size: 11px; font-family: sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;}
+        .input-area { flex: 1; background: #1e1e1e; color: #d4d4d4; border-radius: 4px; padding: 15px; white-space: pre-wrap; line-height: 1.5; font-size: 14px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); overflow-x: auto; }
+        .input-area.active { border-left: 4px solid var(--accent-python-yellow); }
+        .output-area { margin-top: 10px; font-family: var(--code-font); font-size: 13px; color: #333; overflow-x: auto; background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; }
+        .py-kw { color: #569cd6; font-weight: bold; } 
+        .py-str { color: #ce9178; } 
+        .py-num { color: #b5cea8; } 
+        .py-func { color: #dcdcaa; } 
+        .py-comment { color: #6a9955; } 
+        .play-btn { background: transparent; border: 1px solid var(--accent-python-yellow); color: var(--accent-python-yellow); width: 32px; height: 32px; border-radius: 4px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .play-btn:hover { background: var(--accent-python-yellow); color: #000; }
+        .checkbox-custom { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-light-blue); flex-shrink: 0; }
+        .fixed-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(5px); border-top: 1px solid var(--border-color); padding: 1rem; text-align: center; font-size: 0.9rem; z-index: 1000; }
+        .fixed-footer a { color: var(--accent-light-blue); text-decoration: none; font-weight: 600; }
+        @media (max-width: 768px) { body { padding-top: 120px; } header { padding: 1.5rem 1rem; } .controls-wrapper { padding: 0 1rem; flex-direction: column; } .search-input, .filter-select { width: 100%; min-width: unset; } .container { padding: 0 1rem; } .modal-overlay { padding: 10px; } .notebook-window { height: 95vh; } .notebook-body { padding: 15px; } }
+    </style>
+</head>
+<body>
+    <div class="ambient-light"></div>
+    <div class="progress-container">
+        <span class="progress-info">Python Mastery</span>
+        <div class="progress-bar-wrapper"><div id="progress-bar-fill" class="progress-bar-fill"></div></div>
+        <span id="progress-text" class="progress-info">0/0</span>
+        <button class="reset-btn" onclick="resetProgress()">Reset</button>
+    </div>
+    <header>
+        <h1>Chill Panda 🐼</h1>
+        <p style="color: var(--text-secondary)">Exact syntax. Deep-tested logic. Verified Python Outputs.</p>
+    </header>
+    <div class="controls-wrapper">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search method...">
+        <select id="catFilter" class="filter-select">
+            <option value="all">All Categories</option>
+            <option value="Input">0. User Input</option>
+            <option value="Lists">1. List Methods</option>
+            <option value="Sets">2. Set Methods</option>
+            <option value="Tuples">3. Tuple Methods</option>
+            <option value="Dicts">4. Dictionary Methods</option>
+            <option value="Strings">5. String Methods</option>
+        </select>
+    </div>
+    <div class="container">
+        <div class="table-wrapper">
+            <table>
+                <thead><tr><th width="50">✓</th><th width="140">Category</th><th width="180">Method</th><th>Explanation</th><th width="80">Demo</th></tr></thead>
+                <tbody id="master-body"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal">
+        <div class="notebook-window">
+            <div class="notebook-header"><span><span style="color:var(--accent-python-yellow)">▶</span> Python Editor</span><button onclick="closeModal()" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:#fff;">×</button></div>
+            <div class="notebook-body">
+                <div class="schema-container" id="schema-view">
+                    <div class="schema-title">Initial Variables in Memory:</div>
+                    <table class="context-table" id="context-table">
+                        <thead><tr><th>Variable</th><th>Value</th></tr></thead>
+                        <tbody id="context-body"></tbody>
+                    </table>
+                </div>
+                <div class="info-box question-box" id="demo-question-box"><div class="question-title">🎯 Goal / Scenario</div><div id="demo-question"></div></div>
+                <div class="cell">
+                    <div class="cell-input"><div class="prompt" id="prompt-label">script.py</div><div class="input-area active" id="code-box"></div></div>
+                    <div class="prompt" style="margin-top: 15px;">Console Output:</div><div class="output-area" id="output-box"></div>
+                </div>
+                <div class="info-box explanation-box" id="demo-explanation-box"><div class="explanation-title">💡 Why this works</div><div id="demo-explanation"></div></div>
+            </div>
+        </div>
+    </div>
+    <footer class="fixed-footer">Ideation & development <a href="https://github.com/edusatyaki" target="_blank">Satyaki Das</a> | Python Innovation v_02.0.0</footer>
+
+    <script>
+        function highlightPython(str) {
+            const keywords = ['True', 'False', 'None', 'and', 'or', 'not', 'if', 'else', 'elif', 'for', 'while', 'in', 'is', 'def', 'class', 'return', 'import', 'from', 'as', 'try', 'except', 'finally', 'with', 'pass', 'break', 'continue', 'del'];
+            const builtins = ['print', 'len', 'type', 'int', 'float', 'str', 'list', 'dict', 'set', 'tuple', 'dir', 'help', 'input'];
+            let highlighted = str;
+            highlighted = highlighted.replace(/(#.*)/g, `<span class="py-comment">$1</span>`);
+            highlighted = highlighted.replace(/(['"])(.*?)\1/g, `<span class="py-str">$&</span>`);
+            keywords.forEach(kw => { highlighted = highlighted.replace(new RegExp(`\\b${kw}\\b(?![^<]*>)`, 'g'), `<span class="py-kw">${kw}</span>`); });
+            builtins.forEach(func => { highlighted = highlighted.replace(new RegExp(`\\b${func}\\b(?=\\()`, 'g'), `<span class="py-func">${func}</span>`); });
+            highlighted = highlighted.replace(/\b(\d+(\.\d+)?)\b(?![^<]*>)/g, `<span class="py-num">$1</span>`);
+            return highlighted;
+        }
+
+        const pyMethods = [
+            // --- 0. Input ---
+            { cat: 'Input', name: 'input()', desc: 'Read a string from standard input.', question: 'How do we ask a user for their name?', explanation: '`input()` pauses execution and waits for user input. It always returns a string.', context: [], code: 'name = input("Enter your name: ")\n# User typed: Alice\nprint("Hello, " + name)', out: 'Enter your name: Alice\nHello, Alice' },
+
+            // --- 1. Lists (11) ---
+            { cat: 'Lists', name: 'append()', desc: 'Add an item to the end of the list.', question: 'How do we add 5 to the end?', explanation: '`append(x)` modifies the list in-place by adding `x` to the end.', context: [{v: 'lst', val: '[3, 1, 2]', type: 'list'}], code: 'lst.append(5)\nprint(lst)', out: '[3, 1, 2, 5]' },
+            { cat: 'Lists', name: 'extend()', desc: 'Extend list by appending elements from an iterable.', question: 'How do we merge [4, 5] into our list?', explanation: '`extend(iterable)` unpacks elements and adds them individually.', context: [{v: 'lst', val: '[3, 1, 2]', type: 'list'}], code: 'lst.extend([4, 5])\nprint(lst)', out: '[3, 1, 2, 4, 5]' },
+            { cat: 'Lists', name: 'insert()', desc: 'Insert an item at a given position.', question: 'How do we place 99 at index 0?', explanation: '`insert(i, x)` shifts existing items to the right.', context: [{v: 'lst', val: '[3, 1, 2]', type: 'list'}], code: 'lst.insert(0, 99)\nprint(lst)', out: '[99, 3, 1, 2]' },
+            { cat: 'Lists', name: 'remove()', desc: 'Remove first occurrence of value.', question: 'How do we remove the first 1?', explanation: '`remove(x)` deletes the first matching value. Throws ValueError if not found.', context: [{v: 'lst', val: '[3, 1, 2, 1]', type: 'list'}], code: 'lst.remove(1)\nprint(lst)', out: '[3, 2, 1]' },
+            { cat: 'Lists', name: 'pop()', desc: 'Remove and return item at index (default last).', question: 'How do we remove and retrieve the last item?', explanation: '`pop()` modifies the list and returns the removed item.', context: [{v: 'lst', val: '[3, 1, 2]', type: 'list'}], code: 'item = lst.pop()\nprint(lst, "Popped:", item)', out: '[3, 1] Popped: 2' },
+            { cat: 'Lists', name: 'clear()', desc: 'Remove all items.', question: 'How do we empty the list?', explanation: '`clear()` deletes all elements, resulting in `[]`.', context: [{v: 'lst', val: '[3, 1, 2]', type: 'list'}], code: 'lst.clear()\nprint(lst)', out: '[]' },
+            { cat: 'Lists', name: 'index()', desc: 'Return index of first matching item.', question: 'At what index is 2?', explanation: '`index(x)` returns the zero-based position of `x`.', context: [{v: 'lst', val: '[3, 1, 2]', type: 'list'}], code: 'print(lst.index(2))', out: '2' },
+            { cat: 'Lists', name: 'count()', desc: 'Return count of occurrences.', question: 'How many times does 1 appear?', explanation: '`count(x)` tallies exactly how many times `x` exists in the list.', context: [{v: 'lst', val: '[3, 1, 2, 1]', type: 'list'}], code: 'print(lst.count(1))', out: '2' },
+            { cat: 'Lists', name: 'sort()', desc: 'Sort the list in place.', question: 'How do we sort numerically?', explanation: '`sort()` alters the original list ascendingly.', context: [{v: 'lst', val: '[3, 1, 2]', type: 'list'}], code: 'lst.sort()\nprint(lst)', out: '[1, 2, 3]' },
+            { cat: 'Lists', name: 'reverse()', desc: 'Reverse the list in place.', question: 'How do we flip the list order?', explanation: '`reverse()` flips items backwards without sorting.', context: [{v: 'lst', val: '[3, 1, 2]', type: 'list'}], code: 'lst.reverse()\nprint(lst)', out: '[2, 1, 3]' },
+            { cat: 'Lists', name: 'copy()', desc: 'Return a shallow copy of the list.', question: 'How do we safely duplicate the list?', explanation: '`copy()` creates a new list object so modifications don\'t affect the original.', context: [{v: 'lst', val: '[1, 2]', type: 'list'}], code: 'new_lst = lst.copy()\nnew_lst.append(3)\nprint(lst, new_lst)', out: '[1, 2] [1, 2, 3]' },
+
+            // --- 2. Sets (17) ---
+            { cat: 'Sets', name: 'add()', desc: 'Add an element.', question: 'How do we add 4?', explanation: 'Sets enforce uniqueness. `add(x)` adds `x` if not present.', context: [{v: 's', val: '{1, 2, 3}', type: 'set'}], code: 's.add(4)\nprint(s)', out: '{1, 2, 3, 4}' },
+            { cat: 'Sets', name: 'update()', desc: 'Add elements from iterables.', question: 'How do we merge {3,4,5}?', explanation: '`update()` adds multiple elements, ignoring duplicates.', context: [{v: 's', val: '{1, 2, 3}', type: 'set'}], code: 's.update({3, 4, 5})\nprint(s)', out: '{1, 2, 3, 4, 5}' },
+            { cat: 'Sets', name: 'remove()', desc: 'Remove an element (raises error if missing).', question: 'How do we remove 2?', explanation: '`remove(x)` deletes `x`. Raises KeyError if `x` is absent.', context: [{v: 's', val: '{1, 2, 3}', type: 'set'}], code: 's.remove(2)\nprint(s)', out: '{1, 3}' },
+            { cat: 'Sets', name: 'discard()', desc: 'Remove an element (safe).', question: 'How do we safely remove 99?', explanation: '`discard(x)` deletes `x` if it exists. Does nothing if missing.', context: [{v: 's', val: '{1, 2, 3}', type: 'set'}], code: 's.discard(99)\nprint(s)', out: '{1, 2, 3}' },
+            { cat: 'Sets', name: 'pop()', desc: 'Remove and return an arbitrary element.', question: 'How do we grab and remove a random item?', explanation: 'Sets are unordered. `pop()` removes and returns a seemingly random item.', context: [{v: 's', val: '{1, 2, 3}', type: 'set'}], code: 'item = s.pop()\nprint("Popped:", item)', out: 'Popped: 1' },
+            { cat: 'Sets', name: 'clear()', desc: 'Remove all elements.', question: 'How do we empty the set?', explanation: '`clear()` deletes everything, resulting in `set()`.', context: [{v: 's', val: '{1, 2}', type: 'set'}], code: 's.clear()\nprint(s)', out: 'set()' },
+            { cat: 'Sets', name: 'copy()', desc: 'Return a shallow copy.', question: 'How do we duplicate a set?', explanation: '`copy()` creates a new set object.', context: [{v: 's', val: '{1, 2}', type: 'set'}], code: 's2 = s.copy()\nprint(s2)', out: '{1, 2}' },
+            { cat: 'Sets', name: 'union()', desc: 'Return union of sets.', question: 'How do we combine `a` and `b`?', explanation: '`union()` (or `|`) returns all unique elements from both.', context: [{v: 'a', val: '{1, 2}', type: 'set'}, {v: 'b', val: '{2, 3}', type: 'set'}], code: 'print(a.union(b))', out: '{1, 2, 3}' },
+            { cat: 'Sets', name: 'intersection()', desc: 'Return intersection of sets.', question: 'What elements are in BOTH `a` and `b`?', explanation: '`intersection()` (or `&`) returns only shared elements.', context: [{v: 'a', val: '{1, 2}', type: 'set'}, {v: 'b', val: '{2, 3}', type: 'set'}], code: 'print(a.intersection(b))', out: '{2}' },
+            { cat: 'Sets', name: 'difference()', desc: 'Return difference of sets.', question: 'What is in `a` but not in `b`?', explanation: '`difference()` (or `-`) subtracts `b` from `a`.', context: [{v: 'a', val: '{1, 2}', type: 'set'}, {v: 'b', val: '{2, 3}', type: 'set'}], code: 'print(a.difference(b))', out: '{1}' },
+            { cat: 'Sets', name: 'symmetric_difference()', desc: 'Return elements in either set, but not both.', question: 'What elements are unique to each set?', explanation: '`symmetric_difference()` (or `^`) drops shared items.', context: [{v: 'a', val: '{1, 2}', type: 'set'}, {v: 'b', val: '{2, 3}', type: 'set'}], code: 'print(a.symmetric_difference(b))', out: '{1, 3}' },
+            { cat: 'Sets', name: 'issubset()', desc: 'Check if another set contains this set.', question: 'Is `a` fully contained inside `b`?', explanation: '`issubset()` (or `<=`) returns True if all elements of `a` exist in `b`.', context: [{v: 'a', val: '{1}', type: 'set'}, {v: 'b', val: '{1, 2}', type: 'set'}], code: 'print(a.issubset(b))', out: 'True' },
+            { cat: 'Sets', name: 'issuperset()', desc: 'Check if this set contains another set.', question: 'Does `b` contain everything in `a`?', explanation: '`issuperset()` (or `>=`) is the reverse of issubset.', context: [{v: 'a', val: '{1}', type: 'set'}, {v: 'b', val: '{1, 2}', type: 'set'}], code: 'print(b.issuperset(a))', out: 'True' },
+            { cat: 'Sets', name: 'isdisjoint()', desc: 'Check if two sets have a null intersection.', question: 'Do these sets share absolutely nothing?', explanation: '`isdisjoint()` returns True if no items overlap.', context: [{v: 'a', val: '{1}', type: 'set'}, {v: 'b', val: '{2, 3}', type: 'set'}], code: 'print(a.isdisjoint(b))', out: 'True' },
+            { cat: 'Sets', name: 'intersection_update()', desc: 'Update set with intersection of itself and another.', question: 'How do we overwrite `a` to only keep items shared with `b`?', explanation: '`_update` methods modify the original set in place instead of returning a new one.', context: [{v: 'a', val: '{1, 2}', type: 'set'}, {v: 'b', val: '{2, 3}', type: 'set'}], code: 'a.intersection_update(b)\nprint(a)', out: '{2}' },
+            { cat: 'Sets', name: 'difference_update()', desc: 'Remove elements found in another set.', question: 'How do we remove items from `a` that exist in `b`?', explanation: 'Modifies `a` by stripping away anything matching `b`.', context: [{v: 'a', val: '{1, 2}', type: 'set'}, {v: 'b', val: '{2, 3}', type: 'set'}], code: 'a.difference_update(b)\nprint(a)', out: '{1}' },
+            { cat: 'Sets', name: 'symmetric_difference_update()', desc: 'Update set to keep only elements found in either, not both.', question: 'How do we update `a` to drop overlaps?', explanation: 'Modifies `a` in place using symmetric difference logic.', context: [{v: 'a', val: '{1, 2}', type: 'set'}, {v: 'b', val: '{2, 3}', type: 'set'}], code: 'a.symmetric_difference_update(b)\nprint(a)', out: '{1, 3}' },
+
+            // --- 3. Tuples (2) ---
+            { cat: 'Tuples', name: 'count()', desc: 'Return number of occurrences.', question: 'How many times does 2 appear?', explanation: 'Tuples are immutable. `count()` tallies matches.', context: [{v: 't', val: '(1, 2, 2, 3)', type: 'tuple'}], code: 'print(t.count(2))', out: '2' },
+            { cat: 'Tuples', name: 'index()', desc: 'Return first index of value.', question: 'At what index is 3?', explanation: 'Returns the zero-based index of the first match.', context: [{v: 't', val: '(1, 2, 2, 3)', type: 'tuple'}], code: 'print(t.index(3))', out: '3' },
+
+            // --- 4. Dicts (11) ---
+            { cat: 'Dicts', name: 'clear()', desc: 'Remove all items.', question: 'How do we empty the dictionary?', explanation: 'Leaves an empty `{}`.', context: [{v: 'd', val: '{"a": 1}', type: 'dict'}], code: 'd.clear()\nprint(d)', out: '{}' },
+            { cat: 'Dicts', name: 'copy()', desc: 'Return shallow copy.', question: 'How do we duplicate the dict safely?', explanation: 'Returns a new dictionary object.', context: [{v: 'd', val: '{"a": 1}', type: 'dict'}], code: 'd2 = d.copy()\nprint(d2)', out: "{'a': 1}" },
+            { cat: 'Dicts', name: 'fromkeys()', desc: 'Create a new dict with keys from iterable and values set to value.', question: 'How do we initialize a dict with default values?', explanation: 'Class method `dict.fromkeys(seq, val)` generates a new dict.', context: [], code: 'keys = ["a", "b"]\nd = dict.fromkeys(keys, 0)\nprint(d)', out: "{'a': 0, 'b': 0}" },
+            { cat: 'Dicts', name: 'get()', desc: 'Return value for key, or default if missing.', question: 'How do we safely access "c"?', explanation: '`get(k, default)` avoids KeyErrors.', context: [{v: 'd', val: '{"a": 1}', type: 'dict'}], code: 'print(d.get("c", "Missing"))', out: 'Missing' },
+            { cat: 'Dicts', name: 'items()', desc: 'Return view of (key, value) pairs.', question: 'How do we get pairs for looping?', explanation: 'Returns a dynamic view object of tuples.', context: [{v: 'd', val: '{"a": 1}', type: 'dict'}], code: 'print(list(d.items()))', out: "[('a', 1)]" },
+            { cat: 'Dicts', name: 'keys()', desc: 'Return view of keys.', question: 'How do we extract all keys?', explanation: 'Returns a view object of all keys.', context: [{v: 'd', val: '{"a": 1}', type: 'dict'}], code: 'print(list(d.keys()))', out: "['a']" },
+            { cat: 'Dicts', name: 'values()', desc: 'Return view of values.', question: 'How do we extract all values?', explanation: 'Returns a view object of all values.', context: [{v: 'd', val: '{"a": 1}', type: 'dict'}], code: 'print(list(d.values()))', out: "[1]" },
+            { cat: 'Dicts', name: 'pop()', desc: 'Remove specified key and return value.', question: 'How do we remove and extract "a"?', explanation: '`pop(key)` mutates the dict and yields the value.', context: [{v: 'd', val: '{"a": 1, "b": 2}', type: 'dict'}], code: 'val = d.pop("a")\nprint(d, val)', out: "{'b': 2} 1" },
+            { cat: 'Dicts', name: 'popitem()', desc: 'Remove and return last (key, value) pair.', question: 'How do we pop the last inserted pair?', explanation: '`popitem()` operates LIFO (Last In, First Out) in Python 3.7+.', context: [{v: 'd', val: '{"a": 1, "b": 2}', type: 'dict'}], code: 'pair = d.popitem()\nprint(d, pair)', out: "{'a': 1} ('b', 2)" },
+            { cat: 'Dicts', name: 'update()', desc: 'Update dict with key/value pairs.', question: 'How do we merge another dict into ours?', explanation: 'Overwrites existing keys, adds new ones.', context: [{v: 'd', val: '{"a": 1}', type: 'dict'}], code: 'd.update({"b": 2, "a": 9})\nprint(d)', out: "{'a': 9, 'b': 2}" },
+            { cat: 'Dicts', name: 'setdefault()', desc: 'Insert key with value if key is not in dict.', question: 'How do we add "c":3 only if "c" is missing?', explanation: 'Returns the existing value, or sets and returns the new default.', context: [{v: 'd', val: '{"a": 1}', type: 'dict'}], code: 'd.setdefault("c", 3)\nprint(d)', out: "{'a': 1, 'c': 3}" },
+
+            // --- 5. Strings (50+) ---
+            // Case Methods
+            { cat: 'Strings', name: 'upper()', desc: 'Convert to uppercase.', question: 'Make string uppercase.', explanation: 'Returns fully capitalized string.', context: [{v:'s',val:'"hi"',type:'str'}], code: 'print(s.upper())', out: 'HI' },
+            { cat: 'Strings', name: 'lower()', desc: 'Convert to lowercase.', question: 'Make string lowercase.', explanation: 'Returns fully lowercase string.', context: [{v:'s',val:'"HI"',type:'str'}], code: 'print(s.lower())', out: 'hi' },
+            { cat: 'Strings', name: 'title()', desc: 'Convert to title case.', question: 'Capitalize each word.', explanation: 'Capitalizes the first letter of each word.', context: [{v:'s',val:'"hello world"',type:'str'}], code: 'print(s.title())', out: 'Hello World' },
+            { cat: 'Strings', name: 'capitalize()', desc: 'Capitalize first character.', question: 'Capitalize only the first letter.', explanation: 'Unlike title(), only the absolute first char changes.', context: [{v:'s',val:'"hello world"',type:'str'}], code: 'print(s.capitalize())', out: 'Hello world' },
+            { cat: 'Strings', name: 'swapcase()', desc: 'Swap case of characters.', question: 'Invert casing.', explanation: 'Upper becomes lower, lower becomes upper.', context: [{v:'s',val:'"hI"',type:'str'}], code: 'print(s.swapcase())', out: 'Hi' },
+            { cat: 'Strings', name: 'casefold()', desc: 'Aggressive lowercasing.', question: 'Normalize string for matching.', explanation: 'Stronger than lower(), handles special unicode like German ß -> ss.', context: [{v:'s',val:'"fluß"',type:'str'}], code: 'print(s.casefold())', out: 'fluss' },
+            // Search Methods
+            { cat: 'Strings', name: 'find()', desc: 'Find first index of substring.', question: 'Where is "a"?', explanation: 'Returns index or -1 if missing.', context: [{v:'s',val:'"cat"',type:'str'}], code: 'print(s.find("a"))', out: '1' },
+            { cat: 'Strings', name: 'rfind()', desc: 'Find last index of substring.', question: 'Where is the LAST "a"?', explanation: 'Searches from the right.', context: [{v:'s',val:'"data"',type:'str'}], code: 'print(s.rfind("a"))', out: '3' },
+            { cat: 'Strings', name: 'index()', desc: 'Find index of substring.', question: 'Where is "a" (raise error if missing)?', explanation: 'Like find(), but throws ValueError if not found.', context: [{v:'s',val:'"cat"',type:'str'}], code: 'print(s.index("a"))', out: '1' },
+            { cat: 'Strings', name: 'rindex()', desc: 'Find last index of substring.', question: 'Last index, raising error if missing.', explanation: 'Reverse search, throws ValueError if missing.', context: [{v:'s',val:'"data"',type:'str'}], code: 'print(s.rindex("a"))', out: '3' },
+            { cat: 'Strings', name: 'count()', desc: 'Count overlapping substrings.', question: 'How many "a"s?', explanation: 'Tallies non-overlapping occurrences.', context: [{v:'s',val:'"banana"',type:'str'}], code: 'print(s.count("a"))', out: '3' },
+            { cat: 'Strings', name: 'startswith()', desc: 'Check prefix.', question: 'Does it start with "Py"?', explanation: 'Returns True/False.', context: [{v:'s',val:'"Python"',type:'str'}], code: 'print(s.startswith("Py"))', out: 'True' },
+            { cat: 'Strings', name: 'endswith()', desc: 'Check suffix.', question: 'Does it end with ".txt"?', explanation: 'Returns True/False.', context: [{v:'s',val:'"file.txt"',type:'str'}], code: 'print(s.endswith(".txt"))', out: 'True' },
+            // Check Methods
+            { cat: 'Strings', name: 'isalnum()', desc: 'Check if alphanumeric.', question: 'Is it all letters and numbers?', explanation: 'No spaces or punctuation allowed.', context: [{v:'s',val:'"user123"',type:'str'}], code: 'print(s.isalnum())', out: 'True' },
+            { cat: 'Strings', name: 'isalpha()', desc: 'Check if alphabetic.', question: 'Is it ONLY letters?', explanation: 'No numbers or spaces allowed.', context: [{v:'s',val:'"abc"',type:'str'}], code: 'print(s.isalpha())', out: 'True' },
+            { cat: 'Strings', name: 'isdigit()', desc: 'Check if digits.', question: 'Is it ONLY numbers?', explanation: 'True for standard digits.', context: [{v:'s',val:'"123"',type:'str'}], code: 'print(s.isdigit())', out: 'True' },
+            { cat: 'Strings', name: 'islower()', desc: 'Check if lowercase.', question: 'Are all letters lowercase?', explanation: 'Ignores numbers/symbols.', context: [{v:'s',val:'"abc 1"',type:'str'}], code: 'print(s.islower())', out: 'True' },
+            { cat: 'Strings', name: 'isupper()', desc: 'Check if uppercase.', question: 'Are all letters uppercase?', explanation: 'Ignores numbers/symbols.', context: [{v:'s',val:'"ABC"',type:'str'}], code: 'print(s.isupper())', out: 'True' },
+            { cat: 'Strings', name: 'isspace()', desc: 'Check if whitespace.', question: 'Is it just spaces/tabs/newlines?', explanation: 'True if entirely empty space.', context: [{v:'s',val:'"  \\n "',type:'str'}], code: 'print(s.isspace())', out: 'True' },
+            { cat: 'Strings', name: 'istitle()', desc: 'Check if titlecased.', question: 'Is every word capitalized?', explanation: 'True if matches Title Case rules.', context: [{v:'s',val:'"Hello World"',type:'str'}], code: 'print(s.istitle())', out: 'True' },
+            { cat: 'Strings', name: 'isnumeric()', desc: 'Check if numeric characters.', question: 'Is it numeric?', explanation: 'Includes fractions and roman numerals in unicode.', context: [{v:'s',val:'"123"',type:'str'}], code: 'print(s.isnumeric())', out: 'True' },
+            { cat: 'Strings', name: 'isdecimal()', desc: 'Check if decimal characters.', question: 'Is it strictly base-10 decimals?', explanation: 'Stricter than isdigit().', context: [{v:'s',val:'"123"',type:'str'}], code: 'print(s.isdecimal())', out: 'True' },
+            { cat: 'Strings', name: 'isidentifier()', desc: 'Check if valid variable name.', question: 'Can this string be a variable name?', explanation: 'Must start with letter/underscore, no spaces.', context: [{v:'s',val:'"my_var"',type:'str'}], code: 'print(s.isidentifier())', out: 'True' },
+            { cat: 'Strings', name: 'isprintable()', desc: 'Check if printable.', question: 'Are there hidden escape characters?', explanation: 'False if contains \\n, \\t, etc.', context: [{v:'s',val:'"hi\\n"',type:'str'}], code: 'print(s.isprintable())', out: 'False' },
+            { cat: 'Strings', name: 'isascii()', desc: 'Check if ASCII characters.', question: 'Is it standard ASCII text?', explanation: 'False for emojis or extended unicode.', context: [{v:'s',val:'"abc"',type:'str'}], code: 'print(s.isascii())', out: 'True' },
+            // Modify Methods
+            { cat: 'Strings', name: 'replace()', desc: 'Replace substring.', question: 'Swap a with b.', explanation: 'Returns a modified string.', context: [{v:'s',val:'"cat"',type:'str'}], code: 'print(s.replace("c", "b"))', out: 'bat' },
+            { cat: 'Strings', name: 'strip()', desc: 'Remove surrounding whitespace.', question: 'Clean up spaces.', explanation: 'Trims both ends.', context: [{v:'s',val:'"  hi  "',type:'str'}], code: 'print(s.strip())', out: 'hi' },
+            { cat: 'Strings', name: 'lstrip()', desc: 'Remove leading whitespace.', question: 'Clean up left spaces.', explanation: 'Trims left side only.', context: [{v:'s',val:'"  hi  "',type:'str'}], code: 'print(s.lstrip() + "!")', out: 'hi  !' },
+            { cat: 'Strings', name: 'rstrip()', desc: 'Remove trailing whitespace.', question: 'Clean up right spaces.', explanation: 'Trims right side only.', context: [{v:'s',val:'"  hi  "',type:'str'}], code: 'print("!" + s.rstrip())', out: '!  hi' },
+            { cat: 'Strings', name: 'center()', desc: 'Center string in padded width.', question: 'Center text in 10 spaces.', explanation: 'Pads with spaces by default.', context: [{v:'s',val:'"hi"',type:'str'}], code: 'print(s.center(6, "-"))', out: '--hi--' },
+            { cat: 'Strings', name: 'ljust()', desc: 'Left justify in padded width.', question: 'Pad to the right.', explanation: 'Adds padding to meet length.', context: [{v:'s',val:'"hi"',type:'str'}], code: 'print(s.ljust(5, "-"))', out: 'hi---' },
+            { cat: 'Strings', name: 'rjust()', desc: 'Right justify in padded width.', question: 'Pad to the left.', explanation: 'Adds padding to the left.', context: [{v:'s',val:'"hi"',type:'str'}], code: 'print(s.rjust(5, "-"))', out: '---hi' },
+            { cat: 'Strings', name: 'zfill()', desc: 'Pad string with zeros on left.', question: 'Pad numbers with 0s.', explanation: 'Fills width with zeros (useful for ids).', context: [{v:'s',val:'"42"',type:'str'}], code: 'print(s.zfill(5))', out: '00042' },
+            { cat: 'Strings', name: 'removeprefix()', desc: 'Remove prefix if present.', question: 'Drop "Mr." from name.', explanation: 'Cleaner than slice/replace (Python 3.9+).', context: [{v:'s',val:'"Mr. Bob"',type:'str'}], code: 'print(s.removeprefix("Mr. "))', out: 'Bob' },
+            { cat: 'Strings', name: 'removesuffix()', desc: 'Remove suffix if present.', question: 'Drop ".txt".', explanation: 'Cleaner than slice/replace (Python 3.9+).', context: [{v:'s',val:'"file.txt"',type:'str'}], code: 'print(s.removesuffix(".txt"))', out: 'file' },
+            // Split & Join
+            { cat: 'Strings', name: 'split()', desc: 'Split into list by delimiter.', question: 'Break sentence into words.', explanation: 'Defaults to splitting by any whitespace.', context: [{v:'s',val:'"a b c"',type:'str'}], code: 'print(s.split())', out: "['a', 'b', 'c']" },
+            { cat: 'Strings', name: 'rsplit()', desc: 'Split from the right.', question: 'Split max 1 time from right.', explanation: 'Splits from end. Useful with `maxsplit`.', context: [{v:'s',val:'"a b c"',type:'str'}], code: 'print(s.rsplit(" ", 1))', out: "['a b', 'c']" },
+            { cat: 'Strings', name: 'splitlines()', desc: 'Split at line boundaries.', question: 'Split text block into rows.', explanation: 'Splits on \\n, \\r, etc.', context: [{v:'s',val:'"a\\nb"',type:'str'}], code: 'print(s.splitlines())', out: "['a', 'b']" },
+            { cat: 'Strings', name: 'join()', desc: 'Join iterable with string.', question: 'Combine list into string.', explanation: 'Called on the separator.', context: [{v:'lst',val:'["a","b"]',type:'list'}], code: 'print("-".join(lst))', out: 'a-b' },
+            { cat: 'Strings', name: 'partition()', desc: 'Split string at first match.', question: 'Split into (before, sep, after).', explanation: 'Returns a 3-tuple.', context: [{v:'s',val:'"a-b-c"',type:'str'}], code: 'print(s.partition("-"))', out: "('a', '-', 'b-c')" },
+            { cat: 'Strings', name: 'rpartition()', desc: 'Split string at last match.', question: 'Split from the right.', explanation: 'Returns a 3-tuple parsing backwards.', context: [{v:'s',val:'"a-b-c"',type:'str'}], code: 'print(s.rpartition("-"))', out: "('a-b', '-', 'c')" },
+            // Encoding / Misc
+            { cat: 'Strings', name: 'encode()', desc: 'Encode string to bytes.', question: 'Convert to utf-8 bytes.', explanation: 'Used for networking/files.', context: [{v:'s',val:'"hi"',type:'str'}], code: 'print(s.encode("utf-8"))', out: "b'hi'" },
+            { cat: 'Strings', name: 'format()', desc: 'Format string using placeholders.', question: 'Inject variables.', explanation: 'Replaces `{}`.', context: [{v:'s',val:'"Hi {}"',type:'str'}], code: 'print(s.format("Bob"))', out: 'Hi Bob' },
+            { cat: 'Strings', name: 'format_map()', desc: 'Format using dict mapping.', question: 'Inject from dictionary directly.', explanation: 'Uses a mapping object.', context: [{v:'s',val:'"Hi {n}"',type:'str'}, {v:'d',val:'{"n":"Bob"}',type:'dict'}], code: 'print(s.format_map(d))', out: 'Hi Bob' },
+            { cat: 'Strings', name: 'expandtabs()', desc: 'Replace tabs with spaces.', question: 'Convert \\t to spaces.', explanation: 'Replaces tabs based on tabsize.', context: [{v:'s',val:'"a\\tb"',type:'str'}], code: 'print(s.expandtabs(4))', out: 'a   b' },
+            { cat: 'Strings', name: 'translate()', desc: 'Replace characters using a mapping table.', question: 'Complex character replacement.', explanation: 'Requires a translation table from maketrans().', context: [{v:'s',val:'"cat"',type:'str'}, {v:'tbl',val:'{99: 98}',type:'dict'}], code: 'print(s.translate(tbl))', out: 'bat' },
+            { cat: 'Strings', name: 'maketrans()', desc: 'Create a translation table.', question: 'Create map for translate().', explanation: 'Generates dict mapping unicode ordinals.', context: [], code: 'tbl = str.maketrans("c", "b")\nprint("cat".translate(tbl))', out: 'bat' }
+        ];
+
+        document.getElementById('progress-text').textContent = `0/${pyMethods.length}`;
+
+        function init() {
+            const body = document.getElementById('master-body');
+            pyMethods.forEach((m, i) => {
+                const tr = document.createElement('tr');
+                tr.className = 'func-row';
+                tr.dataset.cat = m.cat;
+                tr.dataset.name = m.name.toLowerCase();
+                const isChecked = localStorage.getItem(`py-v2-${m.name}`) === 'true';
+                
+                let catColor = '#FFE873'; let textColor = '#000';
+                if(m.cat === 'Input') { catColor = '#da3633'; textColor = '#fff'; }
+                if(m.cat === 'Lists') { catColor = '#4B8BBE'; textColor = '#fff'; }
+                if(m.cat === 'Sets') { catColor = '#a371f7'; textColor = '#fff'; }
+                if(m.cat === 'Tuples') { catColor = '#38bdf8'; textColor = '#000'; }
+                if(m.cat === 'Dicts') { catColor = '#22c55e'; textColor = '#fff'; }
+                if(m.cat === 'Strings') { catColor = '#f97316'; textColor = '#fff'; }
+
+                tr.innerHTML = `<td style="text-align:center"><input type="checkbox" class="checkbox-custom" ${isChecked ? 'checked' : ''} onchange="toggleRead('${m.name}', this)"></td>
+                    <td><span class="type-badge" style="background:${catColor}; color:${textColor}; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;">${m.cat}</span></td>
+                    <td class="func-name">${m.name}</td><td class="desc-text">${m.desc}</td>
+                    <td><button class="play-btn" onclick="runDemo(${i})">▶</button></td>`;
+                body.appendChild(tr);
+            });
+            updateProgress();
+        }
+
+        async function runDemo(i) {
+            const m = pyMethods[i];
+            const codeBox = document.getElementById('code-box');
+            const outBox = document.getElementById('output-box');
+            const qBox = document.getElementById('demo-question');
+            const eBox = document.getElementById('demo-explanation');
+            const ctxBody = document.getElementById('context-body');
+            const schemaView = document.getElementById('schema-view');
+
+            document.getElementById('modal').classList.add('active');
+            
+            qBox.innerHTML = m.question || m.desc;
+            eBox.innerHTML = m.explanation || `Demonstrates the usage of ${m.name}.`;
+
+            if (m.context && m.context.length > 0) {
+                schemaView.style.display = 'block';
+                ctxBody.innerHTML = m.context.map(c => `<tr><td><strong>${c.v}</strong> <span class="var-type">${c.type}</span></td><td><code>${c.val}</code></td></tr>`).join('');
+            } else { schemaView.style.display = 'none'; }
+
+            codeBox.innerHTML = ''; outBox.innerHTML = '';
+            let rawCode = "";
+            for (let char of m.code) {
+                rawCode += char;
+                codeBox.innerHTML = highlightPython(rawCode);
+                await new Promise(r => setTimeout(r, 6)); // typed slightly faster for UX
+            }
+            await new Promise(r => setTimeout(r, 150));
+            outBox.innerHTML = m.out;
+        }
+
+        function toggleRead(name, el) { localStorage.setItem(`py-v2-${name}`, el.checked); updateProgress(); }
+        function updateProgress() {
+            const checked = document.querySelectorAll('.checkbox-custom:checked').length;
+            const pct = Math.round((checked / pyMethods.length) * 100);
+            document.getElementById('progress-bar-fill').style.width = pct + '%';
+            document.getElementById('progress-text').textContent = `${checked}/${pyMethods.length}`;
+        }
+        function resetProgress() { if(confirm('Reset all progress?')) { localStorage.clear(); location.reload(); } }
+        function closeModal() { document.getElementById('modal').classList.remove('active'); }
+        document.getElementById('searchInput').addEventListener('input', e => { const q = e.target.value.toLowerCase(); document.querySelectorAll('.func-row').forEach(row => { row.style.display = row.dataset.name.includes(q) ? '' : 'none'; }); });
+        document.getElementById('catFilter').addEventListener('change', e => { const cat = e.target.value; document.querySelectorAll('.func-row').forEach(row => { row.style.display = (cat === 'all' || row.dataset.cat === cat) ? '' : 'none'; }); });
+        init();
+    </script>
+</body>
+</html>
